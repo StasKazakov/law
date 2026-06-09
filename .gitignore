@@ -5,4 +5,4 @@ venv/
 .venv/
 __pycache__/
 *.pyc
-/data_2025.csv
+data/

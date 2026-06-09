@@ -1,5 +1,5 @@
 import asyncio
-from db_connection import init_db, get_pool, close_db
+from tools.db_connection import init_db, get_pool, close_db
 
 async def fetch_row_500():
     print("Connecting to DB to fetch row #500...")
@@ -11,12 +11,15 @@ async def fetch_row_500():
         # Sorting by id ensures we get a deterministic 500th record
         row = await pool.fetchrow(
             """
-            SELECT id, doc_id, doc_url, court_code, judgment_date, clean_text, created_at 
-            FROM documents 
+            SELECT id, doc_id, doc_url, court_code, judgment_date, text, created_at, justice_kind 
+            FROM doc_2025 
             ORDER BY id 
-            LIMIT 1 OFFSET 499;
+            LIMIT 1 OFFSET 5499;
             """
         )
+
+        print(row)
+
 
         if not row:
             print("[WARNING] Row #500 not found. Maybe the table has fewer rows?")
@@ -31,10 +34,11 @@ async def fetch_row_500():
         print(f"Judgment Date:   {row['judgment_date']}")
         print(f"Doc URL:         {row['doc_url']}")
         print(f"Parsed At:       {row['created_at']}")
+        print(f"Justice Kind:    {row['justice_kind']}")
         print("="*50)
         
         # Print the first 1000 characters of the text to check quality
-        text_preview = row['clean_text']
+        text_preview = row['text']
         print("CLEAN TEXT PREVIEW (First 1000 chars):")
         print("-" * 50)
         if len(text_preview) > 1000:

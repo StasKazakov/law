@@ -20,8 +20,8 @@ async def init_db():
                 database=os.getenv("DB_NAME"),
                 user=os.getenv("DB_USER"),
                 password=os.getenv("DB_PASSWORD"),
-                min_size=2,  # Minimum number of connections to keep inside the pool
-                max_size=10  # Maximum connections (increase if you increase workers)
+                min_size=2,  
+                max_size=10  
             )
             print("[DB] Connection pool initialized successfully.")
         except Exception as e:
@@ -45,3 +45,19 @@ async def close_db():
         await _pool.close()
         print("[DB] Connection pool closed.")
         _pool = None
+
+
+async def get_total_documents_count() -> int:
+    """
+    Connects to the database using the existing pool and returns 
+    the total number of rows in the 'documents' table.
+    """
+    try:
+        pool = get_pool()
+        count = await pool.fetchval("SELECT COUNT(*) FROM documents;")
+        print(f"[DB] Total rows in 'documents' table: {count}")
+        return count
+        
+    except Exception as e:
+        print(f"[DB ERROR] Failed to fetch row count: {e}")
+        return 0

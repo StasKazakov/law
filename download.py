@@ -2,8 +2,6 @@ import os
 import csv
 import asyncio
 import httpx
-
-# Import your custom modules
 from db_connection import init_db, get_pool, close_db
 from services import process_row
 
@@ -47,6 +45,7 @@ async def download_and_save():
         rows = await pool.fetch("SELECT doc_id FROM documents;")
         processed_ids = {r['doc_id'] for r in rows}
         print(f"[INFO] Found {len(processed_ids)} already processed documents in DB. Resuming...")
+        print(f"[DEBUG] Actual unique doc_ids count inside Python set: {len(processed_ids)}")
     except Exception as e:
         print(f"[CRITICAL ERROR] Failed to fetch processed IDs: {e}")
         await close_db()
