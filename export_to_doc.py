@@ -3,11 +3,12 @@ import pandas as pd
 from tools.db_connection import init_db
 
 async def export_benchmark_to_excel():
-    """Fetch successfully generated rows from database and export to Excel file"""
+    """Fetch successfully generated rows with cause_num and export to Excel file"""
     pool = await init_db()
     
+    # 1. Добавили cause_num в SELECT и выставили удобный порядок колонок
     query = """
-        SELECT doc_id, court_code, justice_kind, question, doc_url
+        SELECT doc_id, cause_num, court_code, justice_kind, question, doc_url
         FROM doc_eval_100
         WHERE question IS NOT NULL
         ORDER BY id;
@@ -24,8 +25,15 @@ async def export_benchmark_to_excel():
     data = [dict(row) for row in rows]
     df = pd.DataFrame(data)
     
-    # Rename columns for a more professional presentation
-    df.columns = ["Document ID", "Court Code", "Justice Kind", "Generated Question", "Document URL"]
+    # 2. Обновили названия колонок (теперь их 6, строго по порядку из SELECT)
+    df.columns = [
+        "Document ID", 
+        "Case Number (Cause Num)", 
+        "Court Code", 
+        "Justice Kind", 
+        "Generated Question", 
+        "Document URL"
+    ]
     
     output_filename = "legal_benchmark_examples.xlsx"
     print(f"Exporting {len(df)} records to {output_filename}...")
