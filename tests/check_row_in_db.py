@@ -11,14 +11,12 @@ async def fetch_row_500():
         # Sorting by id ensures we get a deterministic 500th record
         row = await pool.fetchrow(
             """
-            SELECT id, doc_id, doc_url, court_code, judgment_date, text, created_at, justice_kind 
-            FROM doc_2025 
+            SELECT id, doc_id, doc_url, court_code, judgment_date, text, created_at, justice_kind, cause_num 
+            FROM doc_eval_100 
             ORDER BY id 
-            LIMIT 1 OFFSET 5499;
+            LIMIT 1 OFFSET 99;
             """
         )
-
-        print(row)
 
 
         if not row:
@@ -35,6 +33,7 @@ async def fetch_row_500():
         print(f"Doc URL:         {row['doc_url']}")
         print(f"Parsed At:       {row['created_at']}")
         print(f"Justice Kind:    {row['justice_kind']}")
+        print(f"Case Number:     {row['cause_num']}")
         print("="*50)
         
         # Print the first 1000 characters of the text to check quality

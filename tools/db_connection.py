@@ -47,17 +47,17 @@ async def close_db():
         _pool = None
 
 
-async def get_total_documents_count() -> int:
+async def lenght_table(table_name: str) -> int:
     """
     Connects to the database using the existing pool and returns 
     the total number of rows in the 'documents' table.
     """
     try:
         pool = get_pool()
-        count = await pool.fetchval("SELECT COUNT(*) FROM documents;")
-        print(f"[DB] Total rows in 'documents' table: {count}")
+        count = await pool.fetchval(f"SELECT COUNT(*) FROM {table_name};")
+        print(f"✅ Total rows in {table_name} table: {count}")
         return count
         
     except Exception as e:
-        print(f"[DB ERROR] Failed to fetch row count: {e}")
+        print(f"❌ Failed to fetch row count: {e}")
         return 0

@@ -1,8 +1,11 @@
-import pandas as pd
+from tools.db_connection import lenght_table, init_db, close_db
+import asyncio
 
-input_file = "documents_structured.csv"
+async def main():
+    await init_db()
+    await lenght_table('doc_eval_100')
+    await close_db()
 
-print("Reading the entire file into RAM... Please wait.")
-df = pd.read_csv(input_file, nrows=1, low_memory=False)
-print("Done.")
-print(df.T)
+
+if __name__ == "__main__":
+    asyncio.run(main())
