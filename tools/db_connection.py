@@ -23,9 +23,9 @@ async def init_db():
                 min_size=2,  
                 max_size=10  
             )
-            print("[DB] Connection pool initialized successfully.")
+            print("✅ Connection pool initialized successfully.")
         except Exception as e:
-            print(f"[DB ERROR] Failed to initialize connection pool: {e}")
+            print(f"❌ Failed to initialize connection pool: {e}")
             raise e
     return _pool
 
@@ -43,7 +43,7 @@ async def close_db():
     global _pool
     if _pool is not None:
         await _pool.close()
-        print("[DB] Connection pool closed.")
+        print("✅ Connection pool closed.")
         _pool = None
 
 

@@ -12,7 +12,7 @@ async def fetch_row_500():
         row = await pool.fetchrow(
             """
             SELECT id, doc_id, doc_url, court_code, judgment_date, text, created_at, justice_kind, cause_num 
-            FROM doc_eval_100 
+            FROM admin_2025 
             ORDER BY id 
             LIMIT 1 OFFSET 99;
             """
