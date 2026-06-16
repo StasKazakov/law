@@ -3,8 +3,8 @@ from openai import AsyncOpenAI
 from tqdm import tqdm
 from tools.db_connection import init_db, get_pool, close_db
 
-BATCH_SIZE = 32
-MODEL_NAME = "text-embedding-qwen3-embedding-8b"
+BATCH_SIZE = 1
+MODEL_NAME = "text-embedding-multilingual-e5-large"
 
 local_client = AsyncOpenAI(
     base_url="http://localhost:1234/v1",
@@ -24,7 +24,7 @@ async def process_batch(pool, rows):
         
         update_data = []
         for idx, item in enumerate(response.data):
-            vector = item.embedding
+            vector = str(item.embedding)
             chunk_id = chunk_ids[idx]
             update_data.append((vector, chunk_id))
             
@@ -58,7 +58,7 @@ async def main():
 
     pbar = tqdm(
         total=total_to_process, 
-        desc="Generating Qwen vectors", 
+        desc="🚀 Generating Qwen vectors", 
         unit="chunk", 
         ncols=100
     )
