@@ -1,10 +1,10 @@
 import asyncio
-from tools.db_connection import get_total_documents_count, init_db, close_db
+from tools.db_connection import lenght_table, init_db, close_db
 
 
 async def main():
     await init_db()
-    await get_total_documents_count()
+    await lenght_table("doc_eval_100")
     await close_db()
 
 

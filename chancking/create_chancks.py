@@ -1,20 +1,21 @@
 import asyncio
 import tiktoken
-from tools.db_connection import init_db, get_pool, close_db  # твой файл с пулом
+from tqdm import tqdm
+from tools.db_connection import init_db, get_pool, close_db  
 
 CHUNK_SIZE    = 256
 CHUNK_OVERLAP = 50   
-EMBED_MODEL   = "gemini-embedding-001"
+EMBED_MODEL   = "universal"
 STRATEGY      = f"size{CHUNK_SIZE}_ov{CHUNK_OVERLAP}_token"
 
-enc = tiktoken.get_encoding("cl100k_base")
+enc = tiktoken.get_encoding("o200k_base")
 
 
 def split_into_chunks(text: str, chunk_size: int, overlap: int) -> list[str]:
-    """
-    Нарезает текст на чанки по токенам с перекрытием.
-    Возвращает список строк.
-    """
+    """Creating chanks with overlap"""
+    # Delete extra spaces
+    cleaned_text = " ".join(text.split())
+
     tokens = enc.encode(text)
     chunks = []
     start = 0
@@ -28,7 +29,7 @@ def split_into_chunks(text: str, chunk_size: int, overlap: int) -> list[str]:
         if end >= len(tokens):
             break
 
-        start += chunk_size - overlap  # сдвигаемся с учётом перекрытия
+        start += chunk_size - overlap  
 
     return chunks
 
@@ -40,6 +41,10 @@ async def process_documents():
     print(f"✅ Uploaded documents: {len(rows)}")
 
     total_chunks = 0
+
+    pbar = tqdm(
+        total=len(rows), desc="Processing documents", unit="doc", ncols=100
+    )
 
     for row in rows:
         doc_id = row["doc_id"]
@@ -64,8 +69,10 @@ async def process_documents():
         )
 
         total_chunks += len(chunks)
+        pbar.update(1)
 
-    print(f"[DONE] Всего чанков записано: {total_chunks}")
+    pbar.close()
+    print(f"🏁 All chancks writen: {total_chunks}")
 
 
 async def main():

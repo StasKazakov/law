@@ -46,7 +46,6 @@ async def close_db():
         print("✅ Connection pool closed.")
         _pool = None
 
-
 async def lenght_table(table_name: str) -> int:
     """
     Connects to the database using the existing pool and returns 
