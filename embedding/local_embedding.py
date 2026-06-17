@@ -1,4 +1,5 @@
 import asyncio
+from tqdm import tqdm
 from config import BATCH_SIZE, EMBEDDING_MODEL, VECTOR_COLUMN
 from utils.clients import lm_studio
 from utils.db_connection import init_db, get_pool, close_db
