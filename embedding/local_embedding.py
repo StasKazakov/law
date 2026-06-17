@@ -1,6 +1,6 @@
 import asyncio
 from config import BATCH_SIZE, EMBEDDING_MODEL, VECTOR_COLUMN
-from utils.clients import lm_studio, pbar
+from utils.clients import lm_studio
 from utils.db_connection import init_db, get_pool, close_db
 from utils.db_handlers import get_missing_embeddings_count, fetch_chunks_without_embeddings, update_chunk_embeddings
 
@@ -45,6 +45,12 @@ async def main():
         await close_db()
         return
 
+    pbar = tqdm(
+        total=total_to_process,
+        desc="🚀 Generating vectors",
+        unit="chunk",
+        ncols=100,
+    )
 
     while True:
         rows = await fetch_chunks_without_embeddings(
