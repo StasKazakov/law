@@ -1,4 +1,4 @@
 # Embedding config
-BATCH_SIZE = 32
-EMBEDDING_MODEL = "text-embedding-bge-m3"
-VECTOR_COLUMN = "bge_vector"
+BATCH_SIZE = 100
+EMBEDDING_MODEL = "Mira190/Euler-Legal-Embedding-V1"
+VECTOR_COLUMN = "euler_vector"
