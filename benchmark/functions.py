@@ -1,7 +1,7 @@
 import asyncio
 from utils.db_connection import init_db, get_pool, close_db
 from config import EMBEDDING_MODEL
-from utils.clients import gemini_client, openai_client, openrouter_client
+from utils.clients import gemini_client, openai_client, openrouter_client, lm_studio
 from google.genai import types
 
 # Get questions from database

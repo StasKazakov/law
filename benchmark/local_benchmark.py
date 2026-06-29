@@ -33,7 +33,7 @@ async def main():
             
         final_score = round(total_score / total_questions, 2)
         print(f"📊 Final Score for Local Model (chunk 256): {final_score:.2f}")
-        await save_benchmark_result(final_score, model_column="local_model", chunk_size="256")
+        await save_benchmark_result(final_score, model_column="e5", chunk_size="256")
         print("✅ Local model result successfully saved to 'benchmark' table.")
         
     finally:
