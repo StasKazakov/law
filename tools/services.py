@@ -3,11 +3,7 @@ import httpx
 from striprtf.striprtf import rtf_to_text
 
 async def process_row(row: dict, client: httpx.AsyncClient, pool) -> bool:
-    """
-    Downloads a single RTF file, converts it to plain text, 
-    cleans it, and inserts it into the PostgreSQL database.
-    Returns True if successfully saved, False otherwise.
-    """
+    
     url = row.get('doc_url')
     doc_id = row.get('doc_id')
     court_code = row.get('court_code')
@@ -23,29 +19,25 @@ async def process_row(row: dict, client: httpx.AsyncClient, pool) -> bool:
             date_str = raw_date.split(' ')[0]
             judgment_date = datetime.strptime(date_str, "%Y-%m-%d").date()
         except Exception:
-            pass  # Leave as None if formatting is corrupted
+            pass  
 
     try:
-        # 1. Download the RTF file via HTTP
         response = await client.get(url)
         if response.status_code != 200:
             return False
 
-        # 2. Extract and decode RTF content to clean text
         rtf_content = response.content.decode('utf-8', errors='ignore')
         plain_text = rtf_to_text(rtf_content).strip()
 
         if not plain_text:
             return False
 
-        # 3. PostgreSQL Protection: Remove breaking Null-bytes (\x00)
         plain_text = plain_text.replace('\x00', '')
         if doc_id: 
             doc_id = doc_id.replace('\x00', '')
         if court_code: 
             court_code = court_code.replace('\x00', '')
 
-        # 4. Insert into the database using the connection pool
         await pool.execute(
             """
             INSERT INTO documents (doc_id, doc_url, court_code, judgment_date, clean_text)
