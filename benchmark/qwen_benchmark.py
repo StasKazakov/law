@@ -34,9 +34,9 @@ async def main():
             print(f"[{index}/{total_questions}] Question ID {q['id']}: Score = {score:.2f}")
             
         final_score = round(total_score / total_questions, 2)
-        print(f"📊 Final Score for Qwen (chunk 256): {final_score:.2f}")
+        print(f"📊 Final Score for Qwen (chunk 512): {final_score:.2f}")
         
-        await save_benchmark_result(final_score, model_column="qwen", chunk_size="256")
+        await save_benchmark_result(final_score, model_column="qwen", chunk_size="512")
         print("✅ Qwen result successfully saved to 'benchmark' table.")
         
     finally:
