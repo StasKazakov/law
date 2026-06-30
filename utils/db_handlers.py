@@ -15,7 +15,6 @@ async def get_missing_embeddings_count(pool, column_name) -> int:
     return row["count"]
 
 async def fetch_chunks_without_embeddings(pool, column_name, limit) -> list:
-    """Fetches a batch of chunks that don't have embeddings for the specified column."""
     query = f"""
         SELECT id, chunk_text 
         FROM chunks_1024 
