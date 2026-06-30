@@ -37,7 +37,7 @@ async def main():
         print(f" Bars Final Score for OpenAI (chunk 1024): {final_score:.2f}")
         
         # Saving using the universal function
-        await save_benchmark_result(final_score, model_column="openai", chunk_size="1024")
+        await save_benchmark_result(final_score, model_column="openai", chunk_size="1536")
         print("✅ OpenAI result successfully saved to 'benchmark' table.")
         
     finally:

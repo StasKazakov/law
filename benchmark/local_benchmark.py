@@ -32,8 +32,8 @@ async def main():
             print(f"[{index}/{total_questions}] Question ID {q['id']}: Score = {score:.2f}")
             
         final_score = round(total_score / total_questions, 2)
-        print(f"📊 Final Score for Local Model (chunk 1024): {final_score:.2f}")
-        await save_benchmark_result(final_score, model_column="bge", chunk_size="1024")
+        print(f"📊 Final Score for Local Model (chunk 1536): {final_score:.2f}")
+        await save_benchmark_result(final_score, model_column="bge", chunk_size="1536")
         print("✅ Local model result successfully saved to 'benchmark' table.")
         
     finally:

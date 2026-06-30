@@ -1,7 +1,7 @@
 import asyncio
 from utils.db_connection import init_db, get_pool, close_db
 from config import EMBEDDING_MODEL
-from utils.clients import gemini_client, openai_client, openrouter_client, lm_studio
+from utils.clients import gemini_client, openai_client, openrouter_client, lm_studio, euler_client
 from google.genai import types
 
 # Get questions from database
@@ -43,7 +43,7 @@ async def get_top_10_documents(question_embedding: str, vector_column: str) -> l
     
     search_query = f"""
         SELECT doc_id 
-        FROM chunks_1024 
+        FROM doc_chunks_1k 
         GROUP BY doc_id 
         ORDER BY MIN({vector_column} <=> $1::vector) 
         LIMIT 10;
@@ -97,4 +97,13 @@ async def get_lm_studio_embedding(text: str) -> str:
         input=[text],
         model=EMBEDDING_MODEL
     )
+    return str(response.data[0].embedding)
+
+async def get_euler_embedding(text: str) -> list:
+    """Fetches embedding from the Euler endpoint using the shared client."""
+    response = await euler_client.embeddings.create(
+        input=[text],
+        model=EMBEDDING_MODEL
+    )
+    
     return str(response.data[0].embedding)
