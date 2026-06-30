@@ -36,10 +36,10 @@ async def main():
             print(f"[{index}/{total_questions}] Question ID {q['id']}: Score = {score:.2f}")
             
         final_score = round(total_score / total_questions, 2)
-        print(f"📊 Final Score for Gemini (chunk 512): {final_score:.2f}")
+        print(f"📊 Final Score for Gemini (chunk 1024): {final_score:.2f}")
         
         # Saving using the updated universal function arguments
-        await save_benchmark_result(final_score, model_column="gemini", chunk_size="512")
+        await save_benchmark_result(final_score, model_column="gemini", chunk_size="1024")
         print("✅ Gemini result successfully saved to 'benchmark' table.")
         
     finally:

@@ -2,6 +2,9 @@ import os
 from openai import AsyncOpenAI
 from google import genai
 from google.genai import types
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Local LM Studio client
 lm_studio = AsyncOpenAI(
@@ -20,12 +23,12 @@ openrouter_client = AsyncOpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=os.environ.get("OPENROUTER_API_KEY"),
     default_headers={
-        "HTTP-Referer": "https://github.com/your-username/law-rag", # Replace with your actual site or repo
+        "HTTP-Referer": "https://github.com/your-username/law-rag", 
         "X-Title": "Law RAG System",
     }
 )
 # Euler client
 euler_client = AsyncOpenAI(
     base_url="http://localhost:8000/v1",
-    api_key="not-needed" # Наш FastAPI сервер не требует ключ
+    api_key="not-needed" 
 )

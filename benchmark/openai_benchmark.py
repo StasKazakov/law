@@ -34,10 +34,10 @@ async def main():
             print(f"[{index}/{total_questions}] Question ID {q['id']}: Score = {score:.2f}")
             
         final_score = round(total_score / total_questions, 2)
-        print(f" Bars Final Score for OpenAI (chunk 512): {final_score:.2f}")
+        print(f" Bars Final Score for OpenAI (chunk 1024): {final_score:.2f}")
         
         # Saving using the universal function
-        await save_benchmark_result(final_score, model_column="openai", chunk_size="512")
+        await save_benchmark_result(final_score, model_column="openai", chunk_size="1024")
         print("✅ OpenAI result successfully saved to 'benchmark' table.")
         
     finally:
