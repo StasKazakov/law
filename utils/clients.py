@@ -3,6 +3,7 @@ from openai import AsyncOpenAI
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
+from huggingface_hub import AsyncInferenceClient
 
 load_dotenv()
 
@@ -31,4 +32,8 @@ openrouter_client = AsyncOpenAI(
 euler_client = AsyncOpenAI(
     base_url="http://localhost:8000/v1",
     api_key="not-needed" 
+)
+
+hf_client = AsyncInferenceClient(
+    model="https://b73yejm83fw58joq.us-east-1.aws.endpoints.huggingface.cloud"
 )

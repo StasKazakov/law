@@ -43,7 +43,7 @@ async def get_top_10_documents(question_embedding: str, vector_column: str) -> l
     
     search_query = f"""
         SELECT doc_id 
-        FROM doc_chunks_1k 
+        FROM chunks_512 
         GROUP BY doc_id 
         ORDER BY MIN({vector_column} <=> $1::vector) 
         LIMIT 10;
