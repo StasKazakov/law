@@ -2,7 +2,7 @@ import asyncio
 import statistics
 import tiktoken
 from dotenv import load_dotenv
-from tools.db_connection import init_db, get_pool, close_db
+from utils.db_connection import init_db, get_pool, close_db
 
 load_dotenv()
 

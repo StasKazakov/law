@@ -1,5 +1,5 @@
 import asyncio
-from tools.db_connection import init_db, get_pool, close_db
+from utils.db_connection import init_db, get_pool, close_db
 
 LIMIT_PER_KIND = 50  # 50 admin + 50 commercial = 100 evaluation rows
 

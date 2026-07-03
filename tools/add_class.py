@@ -1,6 +1,6 @@
 import asyncio
 import csv
-from tools.db_connection import init_db, get_pool, close_db
+from utils.db_connection import init_db, get_pool, close_db
 
 TABLE_MAPPING = {
     '1.0': 'civil',

@@ -2,7 +2,7 @@ import os
 import csv
 import asyncio
 import httpx
-from db_connection import init_db, get_pool, close_db
+from utils.db_connection import init_db, get_pool, close_db
 from services import process_row
 
 CSV_FILE_PATH = "data_2025.csv"

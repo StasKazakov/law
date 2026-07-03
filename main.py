@@ -1,4 +1,4 @@
-from tools.db_connection import lenght_table, init_db, close_db
+from utils.db_connection import lenght_table, init_db, close_db
 import asyncio
 
 async def main():

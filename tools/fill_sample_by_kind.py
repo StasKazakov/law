@@ -1,5 +1,5 @@
 import asyncio
-from tools.db_connection import init_db, get_pool, close_db
+from utils.db_connection import init_db, get_pool, close_db
 
 LIMIT_SIZE = 500  # Number of random rows to fetch from each table
 

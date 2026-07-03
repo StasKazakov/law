@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from tools.functions import get_eval_documents, generate_legal_question
-from tools.db_connection import init_db, close_db
+from utils.db_connection import init_db, close_db
 
 async def main():
     # Initialize connection pool

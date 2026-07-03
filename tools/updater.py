@@ -4,7 +4,7 @@ import asyncio
 import httpx
 
 # Import your existing connection pool helpers and row processor
-from db_connection import init_db, get_pool, close_db
+from utils.db_connection import init_db, get_pool, close_db
 from services import process_row
 
 CSV_FILE_PATH = "data_2025.csv"

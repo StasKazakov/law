@@ -37,21 +37,34 @@ async def get_gemini_embedding(text: str) -> str:
     )
 
     return str(response.embeddings[0].values)
-# Get top 10 documents
-async def get_top_10_documents(question_embedding: str, vector_column: str) -> list:
+# Get top documents
+async def get_top_documents(question_embedding: str, vector_column: str, limit: int = 10) -> list:
     pool = get_pool()
-    
+    raw_limit = limit * 3
     search_query = f"""
         SELECT doc_id 
         FROM chunks_512 
-        GROUP BY doc_id 
-        ORDER BY MIN({vector_column} <=> $1::vector) 
-        LIMIT 10;
+        ORDER BY {vector_column} <=> $1::vector 
+        LIMIT {raw_limit};
     """
     
     async with pool.acquire() as connection:
         rows = await connection.fetch(search_query, question_embedding)
-        return [int(row['doc_id']) for row in rows]
+        
+        seen_docs = set()
+        unique_doc_ids = []
+        
+        for row in rows:
+            doc_id = int(row['doc_id'])
+            if doc_id not in seen_docs:
+                seen_docs.add(doc_id)
+                unique_doc_ids.append(doc_id)
+                
+            # Stop as soon as we collected the requested number of unique documents
+            if len(unique_doc_ids) == limit:
+                break
+                
+        return unique_doc_ids
 # Calculate MRR
 def calculate_linear_rank_score(top_documents: list, target_doc_id: int) -> float:
     for rank, doc_id in enumerate(top_documents, start=1):
@@ -107,3 +120,55 @@ async def get_euler_embedding(text: str) -> list:
     )
     
     return str(response.data[0].embedding)
+
+async def fetch_best_chunks_for_documents(pool, doc_ids: list, question_embedding: str, vector_column: str) -> list:
+    """
+    For each doc_id, finds the exact single chunk from chunks_512 that is closest 
+    to the question_embedding, preserving the original doc_ids order.
+    """
+    if not doc_ids:
+        return []
+    
+    query = f"""
+        WITH best_chunks AS (
+            SELECT DISTINCT ON (doc_id) doc_id, chunk_text
+            FROM chunks_512
+            WHERE doc_id = ANY($1::varchar[])
+            ORDER BY doc_id, {vector_column} <=> $2::vector
+        )
+        SELECT chunk_text 
+        FROM best_chunks
+        ORDER BY array_position($1::varchar[], doc_id);
+    """
+    # Convert ints to strings since doc_id column is character varying(50)
+    string_ids = [str(d) for d in doc_ids]
+    
+    rows = await pool.fetch(query, string_ids, question_embedding)
+    return [row['chunk_text'] for row in rows]
+
+
+    """
+    For each doc_id, finds the exact single chunk from chunks_512 that is closest 
+    to the question_embedding, preserving the original doc_ids order.
+    """
+    if not doc_ids:
+        return []
+    
+    # We use DISTINCT ON (doc_id) to get exactly one best chunk per document,
+    # and then sort the final result to match the original clean_ids order.
+    query = f"""
+        WITH best_chunks AS (
+            SELECT DISTINCT ON (doc_id) doc_id, chunk_text
+            FROM chunks_512
+            WHERE doc_id = ANY($1::varchar[])
+            ORDER BY doc_id, {vector_column} <=> $2::vector
+        )
+        SELECT chunk_text 
+        FROM best_chunks
+        ORDER BY array_position($1::varchar[], doc_id);
+    """
+    # Convert ints to strings since doc_id is character varying(50)
+    string_ids = [str(d) for d in doc_ids]
+    
+    rows = await pool.fetch(query, string_ids, question_embedding)
+    return [row['chunk_text'] for row in rows]

@@ -1,6 +1,6 @@
 import asyncio
 import pandas as pd
-from tools.db_connection import init_db
+from utils.db_connection import init_db
 
 # Укажи правильный путь к твоему CSV-файлу с метаданными
 PATH_TO_CSV = "data/data_2025.csv"

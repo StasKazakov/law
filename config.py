@@ -7,4 +7,4 @@ EMBEDDING_MODEL = "qwen/qwen3-embedding-8b"
 # EMBEDDING_MODEL = "text-embedding-multilingual-e5-large"
 # EMBEDDING_MODEL = "text-embedding-3-large"
 VECTOR_COLUMN = "qwen_vector"
-CHUNK_SIZE = 750
+CHUNK_SIZE = 384

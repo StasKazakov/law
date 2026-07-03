@@ -1,5 +1,5 @@
 import asyncio
-from tools.db_connection import init_db, get_pool, close_db
+from utils.db_connection import init_db, get_pool, close_db
 
 async def fetch_row_500():
     print("Connecting to DB to fetch row #500...")

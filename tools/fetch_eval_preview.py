@@ -1,5 +1,5 @@
 import asyncio
-from tools.db_connection import init_db, get_pool, close_db
+from utils.db_connection import init_db, get_pool, close_db
 
 async def fetch_generated_questions_preview():
     print("Connecting to DB to check generated questions...")

@@ -1,5 +1,5 @@
 import asyncio
-from tools.db_connection import lenght_table, init_db, close_db
+from utils.db_connection import lenght_table, init_db, close_db
 
 
 async def main():

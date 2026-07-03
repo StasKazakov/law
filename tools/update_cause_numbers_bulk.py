@@ -1,6 +1,6 @@
 import asyncio
 import csv
-from tools.db_connection import init_db, get_pool, close_db
+from utils.db_connection import init_db, get_pool, close_db
 
 BATCH_SIZE = 50000  # Update 50k rows at a time to prevent blocking
 
