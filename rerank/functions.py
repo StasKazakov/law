@@ -1,6 +1,7 @@
 import os
 from typing import List, Dict, Any
 import httpx
+import json
 
 def rerank_documents(query: str, documents: List[str], top_n: int = 10) -> List[Dict[str, Any]]:
     """
@@ -44,3 +45,65 @@ def rerank_documents(query: str, documents: List[str], top_n: int = 10) -> List[
         print(f"Error during reranking process: {str(e)}")
         # Critical Fallback: if API fails, return documents in their original order
         return [{"index": i, "relevance_score": 0.0} for i in range(len(documents))]
+    
+
+def rerank_documents_local(query: str, documents: List[str], top_n: int = 10) -> List[Dict[str, Any]]:
+    """
+    Local BGE Reranker v2 M3 via LM Studio Embeddings endpoint.
+    Computes true Cosine Similarity between query embedding and document embeddings.
+    All logic, comments, and console outputs are in English.
+    """
+    if not documents:
+        return []
+
+    url = "http://localhost:1234/v1/embeddings"
+    headers = {"Content-Type": "application/json"}
+    model_name = "text-embedding-bge-reranker-v2-m3"
+    
+    try:
+        with httpx.Client(timeout=30.0) as client:
+            # 1. Get embedding for the query
+            query_payload = {
+                "model": model_name,
+                "input": query
+            }
+            query_response = client.post(url, headers=headers, json=query_payload)
+            if query_response.status_code != 200:
+                print(f"❌ [LOCAL RERANK] Query embedding failed: {query_response.status_code}")
+                return []
+            
+            query_vector = query_response.json()["data"][0]["embedding"]
+            
+            # 2. Get embeddings for all candidate documents in one batch
+            doc_payload = {
+                "model": model_name,
+                "input": documents
+            }
+            doc_response = client.post(url, headers=headers, json=doc_payload)
+            if doc_response.status_code != 200:
+                print(f"❌ [LOCAL RERANK] Docs embedding failed: {doc_response.status_code}")
+                return []
+                
+            docs_data = doc_response.json()["data"]
+            
+            # 3. Calculate Cosine Similarity (dot product for normalized vectors)
+            scores = []
+            for i, item in enumerate(docs_data):
+                doc_vector = item["embedding"]
+                
+                # Math: dot product of two normalized vectors equals cosine similarity
+                dot_product = sum(q * d for q, d in zip(query_vector, doc_vector))
+                
+                scores.append({
+                    "index": i,
+                    "relevance_score": float(dot_product)
+                })
+            
+            # 4. Sort by actual mathematical similarity in descending order
+            scores.sort(key=lambda x: x["relevance_score"], reverse=True)
+            
+            return scores[:top_n]
+            
+    except Exception as e:
+        print(f"\n❌ [LOCAL RERANK EXCEPTION] Connection or calculation failed: {str(e)}")
+        return []

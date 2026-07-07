@@ -1,8 +1,10 @@
 import asyncio
+import asyncpg
 from utils.db_connection import init_db, get_pool, close_db
 from config import EMBEDDING_MODEL
 from utils.clients import gemini_client, openai_client, openrouter_client, lm_studio, euler_client
 from google.genai import types
+from typing import List, Dict
 
 # Get questions from database
 async def fetching_questions():
@@ -122,10 +124,7 @@ async def get_euler_embedding(text: str) -> list:
     return str(response.data[0].embedding)
 
 async def fetch_best_chunks_for_documents(pool, doc_ids: list, question_embedding: str, vector_column: str) -> list:
-    """
-    For each doc_id, finds the exact single chunk from chunks_512 that is closest 
-    to the question_embedding, preserving the original doc_ids order.
-    """
+   
     if not doc_ids:
         return []
     
@@ -140,35 +139,34 @@ async def fetch_best_chunks_for_documents(pool, doc_ids: list, question_embeddin
         FROM best_chunks
         ORDER BY array_position($1::varchar[], doc_id);
     """
-    # Convert ints to strings since doc_id column is character varying(50)
     string_ids = [str(d) for d in doc_ids]
     
     rows = await pool.fetch(query, string_ids, question_embedding)
     return [row['chunk_text'] for row in rows]
 
-
-    """
-    For each doc_id, finds the exact single chunk from chunks_512 that is closest 
-    to the question_embedding, preserving the original doc_ids order.
-    """
+async def fetch_full_documents(pool: asyncpg.Pool, doc_ids: List[int]) -> Dict[int, str]:
     if not doc_ids:
-        return []
-    
-    # We use DISTINCT ON (doc_id) to get exactly one best chunk per document,
-    # and then sort the final result to match the original clean_ids order.
-    query = f"""
-        WITH best_chunks AS (
-            SELECT DISTINCT ON (doc_id) doc_id, chunk_text
-            FROM chunks_512
-            WHERE doc_id = ANY($1::varchar[])
-            ORDER BY doc_id, {vector_column} <=> $2::vector
-        )
-        SELECT chunk_text 
-        FROM best_chunks
-        ORDER BY array_position($1::varchar[], doc_id);
+        return {}
+
+    query = """
+        SELECT doc_id, text 
+        FROM doc_sample_1k 
+        WHERE doc_id = ANY($1::text[])
     """
-    # Convert ints to strings since doc_id is character varying(50)
-    string_ids = [str(d) for d in doc_ids]
     
-    rows = await pool.fetch(query, string_ids, question_embedding)
-    return [row['chunk_text'] for row in rows]
+    string_doc_ids = [str(d_id) for d_id in doc_ids]
+    
+    try:
+        async with pool.acquire() as connection:
+            rows = await connection.fetch(query, string_doc_ids)
+            result_map = {int(row['doc_id']): row['text'] or "" for row in rows}
+            
+            missing_ids = set(doc_ids) - set(result_map.keys())
+            if missing_ids:
+                print(f"⚠️ Warning: Missing full text for document IDs: {list(missing_ids)}")
+                
+            return result_map
+            
+    except Exception as e:
+        print(f"❌ Error while fetching full documents from database: {str(e)}")
+        return {}
