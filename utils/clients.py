@@ -7,7 +7,6 @@ from huggingface_hub import AsyncInferenceClient
 
 load_dotenv()
 
-
 # Local LM Studio client
 lm_studio = AsyncOpenAI(
     base_url="http://localhost:1234/v1",

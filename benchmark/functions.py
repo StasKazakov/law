@@ -144,9 +144,16 @@ async def fetch_best_chunks_for_documents(pool, doc_ids: list, question_embeddin
     rows = await pool.fetch(query, string_ids, question_embedding)
     return [row['chunk_text'] for row in rows]
 
-async def fetch_full_documents(pool: asyncpg.Pool, doc_ids: List[int]) -> Dict[int, str]:
+async def fetch_full_documents(pool, doc_ids: List[int]) -> Dict[int, str]:
     if not doc_ids:
         return {}
+
+    string_ids = []
+    for d_id in doc_ids:
+        if isinstance(d_id, (tuple, list)):
+            string_ids.append(str(d_id[0]))
+        else:
+            string_ids.append(str(d_id))
 
     query = """
         SELECT doc_id, text 
@@ -154,14 +161,13 @@ async def fetch_full_documents(pool: asyncpg.Pool, doc_ids: List[int]) -> Dict[i
         WHERE doc_id = ANY($1::text[])
     """
     
-    string_doc_ids = [str(d_id) for d_id in doc_ids]
-    
     try:
         async with pool.acquire() as connection:
-            rows = await connection.fetch(query, string_doc_ids)
-            result_map = {int(row['doc_id']): row['text'] or "" for row in rows}
+            rows = await connection.fetch(query, string_ids)
             
-            missing_ids = set(doc_ids) - set(result_map.keys())
+            result_map = {int(row['doc_id']): (row['text'] or "") for row in rows}
+            clean_int_ids = [int(x) for x in string_ids]
+            missing_ids = set(clean_int_ids) - set(result_map.keys())
             if missing_ids:
                 print(f"⚠️ Warning: Missing full text for document IDs: {list(missing_ids)}")
                 

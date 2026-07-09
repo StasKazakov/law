@@ -2,6 +2,10 @@ import os
 from typing import List, Dict, Any
 import httpx
 import json
+import asyncio
+from rerank.prompt import GEMINI_RERANK_PROMPT_TEMPLATE
+from utils.clients import gemini_client
+import re
 
 def rerank_documents(query: str, documents: List[str], top_n: int = 10) -> List[Dict[str, Any]]:
     """
@@ -48,11 +52,6 @@ def rerank_documents(query: str, documents: List[str], top_n: int = 10) -> List[
     
 
 def rerank_documents_local(query: str, documents: List[str], top_n: int = 10) -> List[Dict[str, Any]]:
-    """
-    Local BGE Reranker v2 M3 via LM Studio Embeddings endpoint.
-    Computes true Cosine Similarity between query embedding and document embeddings.
-    All logic, comments, and console outputs are in English.
-    """
     if not documents:
         return []
 
@@ -107,3 +106,54 @@ def rerank_documents_local(query: str, documents: List[str], top_n: int = 10) ->
     except Exception as e:
         print(f"\n❌ [LOCAL RERANK EXCEPTION] Connection or calculation failed: {str(e)}")
         return []
+    
+async def rerank_documents_gemini(query: str, documents_map: Dict[int, str], top_n: int = 10) -> List[int]:
+    if not documents_map:
+        return []
+
+    docs_input = []
+    for doc_id, text in documents_map.items():
+        truncated_text = text[:5000].replace("\n", " ")
+        docs_input.append(f"ID: {doc_id}\nTEXT: {truncated_text}")
+
+    documents_payload = "\n\n".join(docs_input)
+
+    prompt = GEMINI_RERANK_PROMPT_TEMPLATE.format(
+        top_n=top_n,
+        query=query,
+        documents_payload=documents_payload
+    )
+
+    try:
+        loop = asyncio.get_running_loop()
+        response = await loop.run_in_executor(
+            None,
+            lambda: gemini_client.models.generate_content(
+                model='gemini-2.5-pro',
+                contents=prompt,
+                config={
+                    "response_mime_type": "application/json",
+                    "temperature": 0.0
+                }
+            )
+        )
+        
+        data = json.loads(response.text)
+        raw_ids = data.get("reranked_ids", [])
+        
+        reranked_ids = []
+        for item in raw_ids:
+            digits = re.sub(r"\D", "", str(item))
+            if digits:
+                reranked_ids.append(int(digits))
+        
+        valid_ids = [d_id for d_id in reranked_ids if d_id in documents_map]
+        
+        if not valid_ids:
+            return list(documents_map.keys())[:top_n]
+            
+        return valid_ids[:top_n]
+
+    except Exception as e:
+        print(f"❌ Error during Gemini reranking: {str(e)}")
+        return list(documents_map.keys())[:top_n]
