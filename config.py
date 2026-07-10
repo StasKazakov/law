@@ -6,5 +6,6 @@ EMBEDDING_MODEL = "qwen/qwen3-embedding-8b"
 # EMBEDDING_MODEL = "text-embedding-bge-m3"
 # EMBEDDING_MODEL = "text-embedding-multilingual-e5-large"
 # EMBEDDING_MODEL = "text-embedding-3-large"
-VECTOR_COLUMN = "embedding"
+VECTOR_COLUMN = "qwen_vector"
 CHUNK_SIZE = 512
+MODEL = "gemini-3.1-flash-lite"

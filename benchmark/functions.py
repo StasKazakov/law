@@ -1,5 +1,4 @@
 import asyncio
-import asyncpg
 from utils.db_connection import init_db, get_pool, close_db
 from config import EMBEDDING_MODEL
 from utils.clients import gemini_client, openai_client, openrouter_client, lm_studio, euler_client
@@ -45,7 +44,7 @@ async def get_top_documents(question_embedding: str, vector_column: str, limit: 
     raw_limit = limit * 3
     search_query = f"""
         SELECT doc_id 
-        FROM chunks_512 
+        FROM chunks_512
         ORDER BY {vector_column} <=> $1::vector 
         LIMIT {raw_limit};
     """
@@ -176,3 +175,24 @@ async def fetch_full_documents(pool, doc_ids: List[int]) -> Dict[int, str]:
     except Exception as e:
         print(f"❌ Error while fetching full documents from database: {str(e)}")
         return {}
+    
+async def new_get_top_documents(question_embedding: str, vector_column: str, limit: int = 10) -> list:
+    pool = get_pool()
+    
+    raw_limit = 200  
+    
+    search_query = f"""
+        SELECT DISTINCT ON (doc_id) doc_id
+        FROM (
+            SELECT doc_id, ({vector_column} <=> $1::vector) as distance
+            FROM chunks_512
+            ORDER BY {vector_column} <=> $1::vector 
+            LIMIT {raw_limit}
+        ) sub
+        ORDER BY doc_id, distance
+        LIMIT {limit};
+    """
+    
+    async with pool.acquire() as connection:
+        rows = await connection.fetch(search_query, question_embedding)
+        return [row["doc_id"] for row in rows]

@@ -22,5 +22,5 @@ async def get_text(doc_id: int) -> str:
         await close_db()
 
 if __name__ == "__main__":
-    asyncio.run(get_text(132409368))
+    asyncio.run(get_text(132699042))
     
