@@ -15,7 +15,6 @@ async def debug_specific_question(target_q_id: int):
     
     try:
         questions = await fetching_questions()
-        # Ищем именно тот вопрос, который нам нужен
         q = next((item for item in questions if int(item['id']) == target_q_id), None)
         
         if not q:
