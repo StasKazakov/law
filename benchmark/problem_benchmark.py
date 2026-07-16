@@ -4,7 +4,7 @@ from utils.db_connection import init_db, close_db
 from config import VECTOR_COLUMN
 
 
-def reciprocal_rank_fusion(vector_results, fts_results, k=10, top_n=10):
+def reciprocal_rank_fusion(vector_results, fts_results, k=60, top_n=10):
     rrf_scores = {}
     
     for rank, doc in enumerate(vector_results, start=1):

@@ -1,5 +1,5 @@
 import asyncio
-import re
+from hybrid_search.fts_engine import search_fts
 from utils.db_connection import init_db, get_pool, close_db
 from config import EMBEDDING_MODEL
 from utils.clients import gemini_client, openai_client, openrouter_client, lm_studio, euler_client
@@ -226,52 +226,7 @@ async def fetching_problem_questions():
         print(f"❌ Error while fetching problematic questions: {e}")
         return []
     
-
 async def get_top_documents_fts(query_text: str, limit: int = 10) -> list:
-    from utils.db_connection import get_pool
-    pool = get_pool()
-
-    words = [w for w in query_text.lower().split() if len(w) > 3]
-    if not words:
-        return []
-    fts_query_string = " | ".join(words)
+    return search_fts(query_text, limit=limit)
     
-    search_query = """
-        SELECT doc_id, MAX(ts_rank_cd(fts_vector, to_tsquery('ukrainian', $1))) as max_rank
-        FROM chunks_512
-        WHERE fts_vector @@ to_tsquery('ukrainian', $1)
-        GROUP BY doc_id
-        ORDER BY max_rank DESC
-        LIMIT $2;
-    """
-    
-    try:
-        async with pool.acquire() as connection:
-            rows = await connection.fetch(search_query, fts_query_string, limit)
-            return [str(row["doc_id"]) for row in rows]
-    except Exception as e:
-        fallback_query = search_query.replace("'ukrainian'", "'simple'")
-        try:
-            async with pool.acquire() as connection:
-                rows = await connection.fetch(fallback_query, fts_query_string, limit)
-                return [str(row["doc_id"]) for row in rows]
-        except Exception as fallback_err:
-            print(f"❌ FTS Error: {fallback_err}")
-            return []
-        
-def reciprocal_rank_fusion(vector_results: list, fts_results: list, k: int = 60, top_n: int = 10) -> list:
-    rrf_scores = {}
 
-    for rank, doc_id in enumerate(vector_results, start=1):
-        if doc_id not in rrf_scores:
-            rrf_scores[doc_id] = 0.0
-        rrf_scores[doc_id] += 1.0 / (k + rank)
-
-    for rank, doc_id in enumerate(fts_results, start=1):
-        if doc_id not in rrf_scores:
-            rrf_scores[doc_id] = 0.0
-        rrf_scores[doc_id] += 1.0 / (k + rank)
-
-    sorted_docs = sorted(rrf_scores.items(), key=lambda item: item[1], reverse=True)
-    
-    return [doc_id for doc_id, score in sorted_docs[:top_n]]
